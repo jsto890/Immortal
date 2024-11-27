@@ -26,10 +26,10 @@ Usage:
 """
 
 timecode = {
-    'frames': 0,
-    'seconds': 0,
-    'minutes': 0,
     'hours': 0,
+    'minutes': 0,
+    'seconds': 0,
+    'frames': 0,
     'fps': 0
 }
 
@@ -39,6 +39,7 @@ frame_rates = {
     2: 29.97,
     3: 30,
 }
+
 
 def change_to_SMPTE(msg):
     if msg.type == "quarter_frame":
@@ -69,17 +70,16 @@ def change_to_SMPTE(msg):
         elif frame_type == 7:
             timecode['hours'] = (timecode['hours'] & 0x0F) | ((frame_value & 0x01) << 4)
             timecode['fps'] = (frame_value >> 1) & 0x03
-    
-        display_timecode()
             
-def display_timecode():
+        display_timecode(msg)
+
+def display_timecode(msg):
     frame_rate = frame_rates.get(timecode['fps'], 'Unknown')
-    print(f"Timecode in HH:MM:SS:FF format: {timecode['hours']:02}:{timecode['minutes']:02}:{timecode['seconds']:02}:{timecode['frames']:02} @ {frame_rate} fps")
-    
-with mido.open_input('Ambient Device 0') as port:
-    for msg in port:
-        print(msg)
-        print(change_to_SMPTE(msg))
-        
-#There is a 'None' being printed somewhere. But if I remove print(change_to_SMPTE(msg)) or display_timecode() then the SMPTE print disappears
-#No clue why this is happening.
+    frame_type = msg.frame_type
+    if frame_type == 7:
+        print(f"Timecode in HH:MM:SS:FF format: {timecode['hours']:02}:{timecode['minutes']:02}:{timecode['seconds']:02}:{timecode['frames']:02} @ {frame_rate} fps")
+        print("\n")
+
+with mido.open_input('Ambient ACN-NL 0') as port:
+    for message in port:
+        change_to_SMPTE(message)

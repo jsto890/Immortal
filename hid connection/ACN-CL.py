@@ -7,14 +7,16 @@ VID = 0x10E6
 PID = 0x108C
 
 try :
-    device = hid.Device(vid = VID, pid = PID)
+    device = hid.device(vid = VID, pid = PID)
     print("Device found")
     
     while True:
         data = device.read(64)
         if data:
             print(f"Data read from device: {data}")
-            
+        else:
+            print("Cant read data")       
+
 except Exception as e:
     print(f"Error: {e}")
 finally:
