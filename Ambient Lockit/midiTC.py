@@ -80,6 +80,6 @@ def display_timecode(msg):
         print(f"Timecode in HH:MM:SS:FF format: {timecode['hours']:02}:{timecode['minutes']:02}:{timecode['seconds']:02}:{timecode['frames']:02} @ {frame_rate} fps")
         print("\n")
 
-with mido.open_input('Ambient ACN-NL 0') as port:
+with mido.open_input('Ambient Device 0') as port:
     for message in port:
         change_to_SMPTE(message)
