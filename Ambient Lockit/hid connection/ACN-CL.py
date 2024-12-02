@@ -1,7 +1,7 @@
 # First file to be run in the project
 # Trying to connect laptop to ACN Lockit using USB HID connector
 
-import hid
+import hidpy as hid
 
 VID = 0x10E6
 PID = 0x108C
