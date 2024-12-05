@@ -12,7 +12,7 @@ const targetProductID = 0x108c; // Lockit product ID
 // UDP details
 const udpClient = dgram.createSocket('udp4');
 const serverPort = 41234;
-const serverAdress = '192.168.1.200';
+const serverAddress = '192.168.1.200';
 
 // Helper function to send timecode over UDP
 function sendTimecodeOverUDP(timecode) {

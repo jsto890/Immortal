@@ -2,7 +2,7 @@ var ACNLockitLib = require('./ambient');
 
 var ACNLockit = new ACNLockitLib();             //Create new ACNLockit Object
 
-ACNLockit.setFrameFormat(3);            //Set Frame Rate to 59.94
+//ACNLockit.setFrameFormat(3);            //Set Frame Rate to 59.94
 
 /*
 Frame Formats:
@@ -30,5 +30,5 @@ Frame Formats:
 //ACNLockit.getACNChannel();
 //ACNLockit.setACNChannel(12);
 ACNLockit.LTCCallback(1);
-ACNLockit.closedevice()
+//ACNLockit.closedevice()
 //ACNLockit.resetTime();                          //Reset TC
