@@ -19,6 +19,7 @@
 
 # Script can now handle multiple response messages in a single read call 
 # while being accurate, just need to add in what response you want aswell as the tag.
+# When recieving the timecode, it seems like the values extracted are wrong or the conversion is wrong.
 
 import hid
 
