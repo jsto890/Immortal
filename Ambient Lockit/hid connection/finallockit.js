@@ -1,5 +1,6 @@
 const HID = require('node-hid');
 const { TextEncoder, TextDecoder } = require('util');
+const dgram = require('dgram');
 
 // Set driver type to "libusb" for Linux
 HID.setDriverType("libusb");
@@ -7,6 +8,23 @@ HID.setDriverType("libusb");
 // Specify vendor and product IDs
 const targetVendorID = 0x10e6; // Lockit vendor ID
 const targetProductID = 0x108c; // Lockit product ID
+
+// UDP details
+const udpClient = dgram.createSocket('udp4');
+const serverPort = 41234;
+const serverAdress = '192.168.1.200';
+
+// Helper function to send timecode over UDP
+function sendTimecodeOverUDP(timecode) {
+    const message = Buffer.from(`Timecode: ${timecode}`);
+    udpClient.send(message, serverPort, serverAddress, (err) => {
+        if (err) {
+            console.error('Error sending timecode:', err);
+        } else {
+            console.log(`Timecode sent: "${timecode}"`);
+        }
+    });
+}
 
 module.exports = class ACNLockit {
     constructor() {
@@ -31,6 +49,8 @@ module.exports = class ACNLockit {
                     console.log("Notification received:", response);
                     const parsedTimecode = this.parseLTCResponse(response);
                     console.log("Parsed Timecode:", parsedTimecode);
+
+                    sendTimecodeOverUDP(parsedTimecode);
                 }
             });
 
