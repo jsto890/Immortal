@@ -2,6 +2,8 @@ const HID = require('node-hid');
 const { TextEncoder, TextDecoder } = require('util');
 const dgram = require('dgram');
 
+const msgpack = require('msgpack-lite');
+
 // Set driver type to "libusb" for Linux
 HID.setDriverType("libusb");
 
@@ -49,8 +51,18 @@ module.exports = class ACNLockit {
                     console.log("Notification received:", response);
                     const parsedTimecode = this.parseLTCResponse(response);
                     console.log("Parsed Timecode:", parsedTimecode);
-
-                    sendTimecodeOverUDP(parsedTimecode);
+            
+                    // Create an object to send over UDP
+                    const timecodeObject = { timecode: parsedTimecode, type: "timecode" };
+                    const packed = msgpack.encode(timecodeObject);
+            
+                    udpClient.send(packed, serverPort, serverAddress, (err) => {
+                        if (err) {
+                            console.error('Error sending timecode:', err);
+                        } else {
+                            console.log(`Timecode sent:`, timecodeObject);
+                        }
+                    });
                 }
             });
 

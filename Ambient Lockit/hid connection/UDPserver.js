@@ -1,4 +1,5 @@
 const dgram = require('dgram');
+const msgpack = require('msgpack-lite');
 
 // Create a UDP socket (server)
 const server = dgram.createSocket('udp4');
@@ -17,7 +18,7 @@ function getRealTimeClockWithMilliseconds() {
 
 // Function to convert frames to milliseconds and get the timecode in HH:MM:SS:MMM
 function convertFramesToMillisecondsAndFormat(timecode) {
-    const match = timecode.match(/Timecode: (\d{2}):(\d{2}):(\d{2}):(\d{2}) @ (\d+)/);
+    const match = timecode.match(/(\d{2}):(\d{2}):(\d{2}):(\d{2}) @ (\d+)/);
     if (!match) {
         console.error('Invalid timecode format');
         return null;
@@ -92,20 +93,29 @@ function compareClocks(receivedTime, realTime) {
 
 // Event listener for receiving messages
 server.on('message', (msg, rinfo) => {
-    const message = msg.toString();
-    console.log(`Received message: "${message}" from ${rinfo.address}:${rinfo.port}`);
+    try {
+        const decodedMessage = msgpack.decode(msg); // Decode the msgpack message
+        console.log(`Received data:`, decodedMessage);
 
-    // Convert the received timecode
-    const receivedTimeWithMilliseconds = convertFramesToMillisecondsAndFormat(message);
-    if (!receivedTimeWithMilliseconds) return;
+        if (decodedMessage.type === "timecode") {
+            const timecode = decodedMessage.timecode;
+            console.log(`Received Timecode: "${timecode}" from ${rinfo.address}:${rinfo.port}`);
 
-    // Get real-time clock
-    const realTimeClock = getRealTimeClockWithMilliseconds();
+            // Convert the received timecode
+            const receivedTimeWithMilliseconds = convertFramesToMillisecondsAndFormat(timecode);
+            if (!receivedTimeWithMilliseconds) return;
 
-    // Compare the two clocks
-    compareClocks(receivedTimeWithMilliseconds, realTimeClock);
+            // Get real-time clock
+            const realTimeClock = getRealTimeClockWithMilliseconds();
 
-
+            // Compare the two clocks
+            compareClocks(receivedTimeWithMilliseconds, realTimeClock);
+        } else {
+            console.error("Invalid message type");
+        }
+    } catch (err) {
+        console.error("Error decoding message:", err);
+    }
 });
 
 // Event listener for when the server starts listening
