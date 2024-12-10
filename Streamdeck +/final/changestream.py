@@ -2,34 +2,72 @@ import io
 import os
 import threading
 import sys
+import socket
+import msgpack
 from PIL import Image, ImageDraw, ImageFont
 from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
 from StreamDeck.Devices.StreamDeck import DialEventType, TouchscreenEventType
 
+UDP_IP = "192.168.1.200"
+UDP_PORT = 41234
+
 # Folder containing image assets
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "Assets")
-FONT_PATH = "/usr/share/fonts/ttf/LiberationSans-Regular.ttf"  # Use any TTF font available
+FONT_PATH = "/usr/share/fonts/ttf/LiberationSans-Bold.ttf"  # Use any TTF font available
 
 exit_event = threading.Event()  # Global event to signal exit
 
-def create_touchscreen_image(deck, labels):
-    """Generate an image for the touchscreen with labels above each dial."""
-    background_path = os.path.join(ASSETS_PATH, "background.jpg")
-    if not os.path.exists(background_path):
-        raise FileNotFoundError(f"Background image not found at {background_path}")
+def udp_listener():
+    """Listen for incoming messages from the JavaScript server."""
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp_socket.bind(("0.0.0.0", 41235))  # Python listens on this port
+    while True:
+        msg, addr = udp_socket.recvfrom(1024)
+        try:
+            data = msgpack.unpackb(msg)
+            process_udp_message(data)
+        except Exception as e:
+            print(f"Error processing message: {e}")
 
-    image = Image.open(background_path).convert("RGB")
+def process_udp_message(data):
+    """Process incoming UDP messages to update labels."""
+    global global_labels
+
+    if data.get("type") == "update_label":
+        target = data.get("target")
+        index = data.get("index")
+        label = data.get("label")
+
+        if target == "dial" and 0 <= index < len(global_labels):
+            global_labels[index] = label
+            print(f"Updated dial {index} to label '{label}'")
+        elif target == "key":
+            # Logic to update button labels if needed
+            print(f"Updated key {index} to label '{label}'")
+        else:
+            print(f"Invalid target or index: {target}, {index}")
+
+        # Refresh the touchscreen or button labels
+        update_touchscreen_image(deck)
+
+def send_udp_message(data):
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    encoded_data = msgpack.packb(data)
+    udp_socket.sendto(encoded_data, (UDP_IP, UDP_PORT))
+    udp_socket.close()
+
+def create_touchscreen_image(image, labels):
     draw = ImageDraw.Draw(image)
-
+    
     try:
-        font = ImageFont.truetype(FONT_PATH, 20)
+        font = ImageFont.truetype(FONT_PATH, 40)
     except (OSError, IOError):
         print(f"Failed to load font '{FONT_PATH}'. Falling back to default font.")
         font = ImageFont.load_default()
 
     # Define positions for the labels above each dial
-    dial_positions = [80, 310, 510, 750]  # Approximate x-coordinates for the 4 dials
+    dial_positions = [100, 415, 730, 1060]  # Approximate x-coordinates for the 4 dials
     for i, label in enumerate(labels):
         # Use textbbox if available, fallback to approximate placement
         if hasattr(draw, "textbbox"):
@@ -38,28 +76,41 @@ def create_touchscreen_image(deck, labels):
         else:
             text_width, _ = draw.textsize(label, font=font)
 
-        text_position = (dial_positions[i] - text_width // 2, 10)  # Centered above each dial
+        text_position = (dial_positions[i] - text_width // 2, 175)  # Centered above each dial
         draw.text(text_position, label, font=font, fill="white")  # Draw the text
 
     return image
 
-def set_touchscreen_labels(deck):
-    """Set the touchscreen image with labels for the dials."""
+global_labels = []
+
+def set_touchscreen_image(deck, image_path):
+    global global_labels
+    # Open the image file
+    tscreen = Image.open(image_path)
+
+    # Convert the image to RGB mode if it's not already
+    if tscreen.mode != 'RGB':
+        tscreen = tscreen.convert('RGB')
+
     labels = ["Volume", "Zoom", "Brightness", "Not Set"]
-    image = create_touchscreen_image(deck, labels)
+    global_labels = labels
+    
+    tscreenl = create_touchscreen_image(tscreen, labels)
+    
+    # Resize the image to fit the Stream Deck touchscreen
+    image = tscreenl.resize((800, 100), Image.LANCZOS)
 
-    image = image.resize((800, 100), Image.LANCZOS)
-    print(f"Setting touchscreen image with size {image.size}")
-
+    # Convert the image to the native format of the Stream Deck touchscreen
     img_byte_arr = io.BytesIO()
     image.save(img_byte_arr, format='JPEG')
     native_image = img_byte_arr.getvalue()
 
-    try:
-        deck.set_touchscreen_image(native_image, 0, 0, 800, 100)
-        print("Touchscreen image set successfully.")
-    except Exception as e:
-        print(f"Failed to set touchscreen image: {e}")
+    # Set the image on the touchscreen
+    deck.set_touchscreen_image(native_image, 0, 0, 800, 100)
+    
+def update_touchscreen_image(deck):
+    image_path = os.path.join(ASSETS_PATH, "wide.jpeg")
+    set_touchscreen_image(deck, image_path)
 
 # Existing functions for keys remain unchanged
 def render_key_image(deck, icon_filename, font_filename, label_text):
@@ -82,7 +133,7 @@ def render_key_image(deck, icon_filename, font_filename, label_text):
     text_height = text_bbox[3] - text_bbox[1]
 
     # Center the text at the bottom of the key
-    text_position = ((image.width - text_width) // 2, image.height - text_height - 10)
+    text_position = ((image.width - text_width) // 2, image.height - text_height - 11.5)
     draw.text(text_position, label_text, font=font, fill="white")
 
     return PILHelper.to_native_key_format(deck, image)
@@ -127,6 +178,17 @@ def update_key_image(deck, key, state):
 def key_change_callback(deck, key, state):
     """Callback for key press events."""
     print(f"Key {key} {'pressed' if state else 'released'} on deck {deck.id()}.")
+    
+    label = get_key_style(deck, key, state)["label"]  # Get the label for the key
+
+    data = {
+        "type": "key_event",
+        "event": "pressed" if state else "released",
+        "key": key,
+        "value": label
+    }
+    send_udp_message(data)  # Send the event data over UDP
+    
     if state:
         # Update the key image dynamically based on state
         update_key_image(deck, key, state)
@@ -139,15 +201,71 @@ def key_change_callback(deck, key, state):
             exit_event.set()
 
 def dial_change_callback(deck, dial, event, value):
+    global global_labels
+
     """Callback for dial turn and press events."""
     if event == DialEventType.TURN:
         print(f"Dial {dial} turned with value {value}.")
+        data = {
+            "type": "dial_event",
+            "event": "turn",
+            "label": global_labels[dial],
+            "dial": dial,
+            "value": value
+        }
     elif event == DialEventType.PUSH:
         print(f"Dial {dial} {'pressed' if value == 1 else 'released'}.")
+        data = {
+            "type": "dial_event",
+            "event": "pressed" if value == 1 else "released",
+            "label": global_labels[dial],
+            "dial": dial,
+            "value": value
+        }
+    send_udp_message(data)  # Send the event data over UDP
 
 def touchscreen_event_callback(deck, event, value):
+    global global_labels
     """Callback for touchscreen press events."""
-    print(f"Touchscreen event: {event}, value: {value}.")
+    x = value.get("x", None)
+    
+    if x is not None:
+        if 0 <= x < 200:
+            print(f"Touchscreen event: {event}, label: {global_labels[0]}, value: {value}.")
+            data = {
+                "type": "touchscreen_event",
+                "event": event.name,  # Convert Enum to string
+                "label": global_labels[0],	
+                "value": value
+            }
+            send_udp_message(data)  # Send the event data over UDP
+        elif 200 <= x < 400:
+            print(f"Touchscreen event: {event}, label: {global_labels[1]}, value: {value}.")
+            data = {
+                "type": "touchscreen_event",
+                "event": event.name,  # Convert Enum to string
+                "label": global_labels[1],	
+                "value": value
+            }
+            send_udp_message(data)  # Send the event data over UDP
+        elif 400 <= x < 600:
+            print(f"Touchscreen event: {event}, label: {global_labels[2]}, value: {value}.")
+            data = {
+                "type": "touchscreen_event",
+                "event": event.name,  # Convert Enum to string
+                "label": global_labels[2],	
+                "value": value
+            }
+            send_udp_message(data)  # Send the event data over UDP
+        elif 600 <= x < 800:
+            print(f"Touchscreen event: {event}, label: {global_labels[3]}, value: {value}.")
+            data = {
+                "type": "touchscreen_event",
+                "event": event.name,  # Convert Enum to string
+                "label": global_labels[3],	
+                "value": value
+            }
+            send_udp_message(data)  # Send the event data over UDP
 
 if __name__ == "__main__":
     streamdecks = DeviceManager().enumerate()
@@ -165,9 +283,6 @@ if __name__ == "__main__":
         # Set brightness
         deck.set_brightness(50)
 
-        # Set touchscreen labels
-        set_touchscreen_labels(deck)
-
         # Initialize keys with icons and labels
         for key in range(deck.key_count()):
             update_key_image(deck, key, False)
@@ -176,6 +291,11 @@ if __name__ == "__main__":
         deck.set_key_callback(key_change_callback)
         deck.set_dial_callback(dial_change_callback)
         deck.set_touchscreen_callback(touchscreen_event_callback)
+        update_touchscreen_image(deck)
+        
+        # Start UDP listener thread
+        udp_thread = threading.Thread(target=udp_listener, daemon=True)
+        udp_thread.start()
 
         # Keep the script running
         print("Listening for events. Press Ctrl+C to exit.")
