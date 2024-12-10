@@ -1,47 +1,3 @@
-const HID = require('node-hid');
-const sharp = require('sharp');
-const path = require('path');
-const fs = require('fs');
-
-// Folder location of image assets used by this example.
-const ASSETS_PATH = path.join(__dirname, 'ASSETS');
-
-async function setKeyImage(deck, key, imagePath, text = null) {
-    try {
-        // Open the image file
-        let icon = sharp(imagePath);
-
-        // Convert the image to RGB mode if it's not already
-        const metadata = await icon.metadata();
-        if (metadata.channels !== 3) {
-            icon = icon.toColourspace('rgb');
-        }
-
-        // Resize the image to fit the Stream Deck key
-        const resizedImage = await icon.resize(deck.keyImageFormat().width, deck.keyImageFormat().height).toBuffer();
-
-        // Draw text on the image if provided
-        if (text) {
-            const fontPath = path.join(ASSETS_PATH, 'AovelSansRounded-rdDL.ttf');  // Ensure you have a font file in the Assets folder
-            const svgText = `
-                <svg width="${deck.keyImageFormat().width}" height="${deck.keyImageFormat().height}">
-                    <text x="50%" y="90%" font-family="${fontPath}" font-size="14" fill="white" text-anchor="middle">${text}</text>
-                </svg>
-            `;
-            const textImage = await sharp(Buffer.from(svgText)).toBuffer();
-            const combinedImage = await sharp(resizedImage).composite([{ input: textImage, gravity: 'south' }]).toBuffer();
-            deck.setKeyImage(key, combinedImage);
-        } else {
-            deck.setKeyImage(key, resizedImage);
-        }
-    } catch (error) {
-        console.error(`Error setting key image: ${error}`);
-    }
-}
-
-// Example usage
-async function main() {
-
 const usb = require('usb');
 
 // Stream Deck USB Vendor and Product IDs
@@ -167,11 +123,3 @@ process.on('uncaughtException', (err) => {
     console.error('Uncaught exception:', err);
     process.exit(1);
 });
-
-
-    const deck = new HID.HID(streamDecks[0].path);
-    await setKeyImage(deck, 0, path.join(ASSETS_PATH, 'example.png'), 'Hello World');
-    deck.close();
-}
-
-main();
