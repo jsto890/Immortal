@@ -18,6 +18,19 @@ FONT_PATH = "/usr/share/fonts/ttf/LiberationSans-Bold.ttf"  # Use any TTF font a
 
 exit_event = threading.Event()  # Global event to signal exit
 
+global_key_labels = [
+    "Camera On",
+    "Camera Off",
+    "Stabilise",
+    "Map",
+    "Speed",
+    "Lighting",
+    "Channel",
+    "Exit"
+]
+
+global_labels = ["Volume", "Zoom", "Brightness", "Not Set"]
+
 def udp_listener():
     """Listen for incoming messages from the JavaScript server."""
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -32,7 +45,7 @@ def udp_listener():
 
 def process_udp_message(data):
     """Process incoming UDP messages to update labels."""
-    global global_labels
+    global global_labels, global_key_labels
 
     if data.get("type") == "update_label":
         target = data.get("target")
@@ -40,16 +53,16 @@ def process_udp_message(data):
         label = data.get("label")
 
         if target == "dial" and 0 <= index < len(global_labels):
-            global_labels[index] = label
+            global_labels[index] = str(label)
             print(f"Updated dial {index} to label '{label}'")
-        elif target == "key":
-            # Logic to update button labels if needed
+            # Refresh the touchscreen or key labels
+            update_touchscreen_image(deck)
+        elif target == "key" and 0 <= index < len(global_key_labels):
+            global_key_labels[index] = str(label)
             print(f"Updated key {index} to label '{label}'")
+            update_key_image(deck, index, False)  # Refresh the key image
         else:
             print(f"Invalid target or index: {target}, {index}")
-
-        # Refresh the touchscreen or button labels
-        update_touchscreen_image(deck)
 
 def send_udp_message(data):
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -81,8 +94,6 @@ def create_touchscreen_image(image, labels):
 
     return image
 
-global_labels = []
-
 def set_touchscreen_image(deck, image_path):
     global global_labels
     # Open the image file
@@ -91,11 +102,8 @@ def set_touchscreen_image(deck, image_path):
     # Convert the image to RGB mode if it's not already
     if tscreen.mode != 'RGB':
         tscreen = tscreen.convert('RGB')
-
-    labels = ["Volume", "Zoom", "Brightness", "Not Set"]
-    global_labels = labels
     
-    tscreenl = create_touchscreen_image(tscreen, labels)
+    tscreenl = create_touchscreen_image(tscreen, global_labels)
     
     # Resize the image to fit the Stream Deck touchscreen
     image = tscreenl.resize((800, 100), Image.LANCZOS)
@@ -139,26 +147,15 @@ def render_key_image(deck, icon_filename, font_filename, label_text):
     return PILHelper.to_native_key_format(deck, image)
 
 def get_key_style(deck, key, state):
-    """Define the style for each key, including icon and text."""
-    exit_key_index = deck.key_count() - 1
-
-    key_styles = [
-        {"icon": "image_1.png", "label": "Camera On"},
-        {"icon": "image_1.png", "label": "Camera Off"},
-        {"icon": "image_1.png", "label": "Stabilise"},
-        {"icon": "image_1.png", "label": "Map"},
-        {"icon": "image_1.png", "label": "Speed"},
-        {"icon": "image_1.png", "label": "Lighting"},
-        {"icon": "image_1.png", "label": "Channel"},
-        {"icon": "image_1.png", "label": "Exit"},
-    ]
+    
+    global global_key_labels
 
     # Get key style for the specified key
-    if key < len(key_styles):
+    if key < len(global_key_labels):
         return {
-            "icon": os.path.join(ASSETS_PATH, key_styles[key]["icon"]),
+            "icon": os.path.join(ASSETS_PATH, "image_1.png"),
             "font": FONT_PATH,
-            "label": key_styles[key]["label"]
+            "label": global_key_labels[key]
         }
     else:
         return {
