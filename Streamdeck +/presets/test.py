@@ -4,7 +4,7 @@ import threading
 import socket
 import msgpack
 import requests
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
 from StreamDeck.Devices.StreamDeck import DialEventType, TouchscreenEventType
@@ -40,7 +40,7 @@ POWER_ON = "power_on.png"
 
 MODE = "mode.png"
 
-EXIT = "speedometer_on.png"
+EXIT = "exit1.png"
 
 def download_image(image_url, filename):
     # Download the image from the provided URL
@@ -157,18 +157,19 @@ def create_touchscreen_image(deck, layer):
     # This is an example; adjust formatting as needed.
     # We'll just print dial labels in a row if present.
     dial_labels = [dial_data[layer].get(i, {}).get("label", "") for i in range(4)]
-    # Display them in a single line at bottom
-    y_bottom = tscreen.height
-    x_start = 100
+    y_bottom = tscreen.height - 50  # move text ~50px above the bottom of the original image
+    x_coords = [120, 410, 750, 1060] # approximate positions for 4 dials
+
     for i, dlbl in enumerate(dial_labels):
         if dlbl:
             if hasattr(draw, "textbbox"):
                 tb = draw.textbbox((0,0), dlbl, font=font)
-                dw = tb[2]-tb[0]
+                dw = tb[2] - tb[0]
             else:
                 dw, dh = draw.textsize(dlbl, font=font)
-            draw.text((x_start - dw//2, y_bottom), dlbl, font=font, fill="white")
-        x_start += 315  # Rough spacing for 4 dials
+            # Place each dial label at x_coords[i], centered horizontally
+            x_pos = x_coords[i] - dw//2
+            draw.text((x_pos, y_bottom), dlbl, font=font, fill="white")
 
     # Resize image to touchscreen dimensions if needed (assume 800x100)
     image = tscreen.resize((800, 100), Image.LANCZOS)
@@ -218,13 +219,26 @@ def render_key_image(deck, icon_filename, font_filename, label_text):
     if not os.path.exists(icon_path):
         # If image not found, use a blank default image you have
         icon_path = os.path.join(ASSETS_PATH, DEFAULT_IMAGE)
-    icon = Image.open(icon_path)
-    image = PILHelper.create_scaled_key_image(deck, icon, margins=[-30, -20, 0, -20])
+    # 1. Open the source image
+    icon = Image.open(icon_path).convert("RGBA")
 
+    # 2. Determine the final size for each key
+    key_width, key_height = deck.key_image_format()["size"]  # Typically (100, 100)
+
+    # 3. Crop & scale the icon to exactly (key_width, key_height)
+    icon = ImageOps.fit(icon, (key_width, key_height - 35), Image.LANCZOS)
+
+    # 4. Create a blank key image canvas
+    image = PILHelper.create_key_image(deck)  # This is already key_width x key_height
+
+    # 5. Paste the scaled icon at (0, 0)
+    image.paste(icon, (0, 0))
+
+    # 6. Draw label text if needed
     draw = ImageDraw.Draw(image)
     try:
         font = ImageFont.truetype(font_filename, 14)
-    except:
+    except (OSError, IOError):
         font = ImageFont.load_default()
 
     if label_text:
@@ -235,9 +249,12 @@ def render_key_image(deck, icon_filename, font_filename, label_text):
         else:
             text_width, text_height = draw.textsize(label_text, font=font)
 
-        text_position = ((image.width - text_width) // 2, image.height - text_height - 11.5)
-        draw.text(text_position, label_text, font=font, fill="white")
+        # Center label at bottom
+        x_pos = (key_width - text_width) // 2
+        y_pos = key_height - text_height - 15
+        draw.text((x_pos, y_pos), label_text, font=font, fill="white")
 
+    # 7. Convert the PIL image to Stream Deck's native format
     return PILHelper.to_native_key_format(deck, image)
 
 def update_key_image(deck, key):
