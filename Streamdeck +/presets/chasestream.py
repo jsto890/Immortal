@@ -17,16 +17,55 @@ FONT_PATH = "/usr/share/fonts/ttf/LiberationSans-Bold.ttf"  # Use any TTF font a
 
 exit_event = threading.Event()  # Global event to signal exit
 
+# Key configuration
+# Each key will have a label and multiple states (for toggles or cycles)
+# We'll store the current state in separate variables.
+# Keys (0-based index):
+# 0: Points of Interest (toggle)
+# 1: Speedometer (toggle)
+# 2: Map (toggle)
+# 3: News Ticker (toggle)
+# 4: Street Names (toggle)
+# 5: Map Position (cycle through list)
+# 6: StreamDeck Power (toggle)
+# 7: Exit (just exits)
+
 global_key_labels = [
-    "Camera On",
-    "Camera Off",
-    "Stabilise",
+    "Points of Interest",
+    "Speedometer",
     "Map",
-    "Speed",
-    "Lighting",
-    "Channel",
+    "News Ticker",
+    "Street names",
+    "Map Position",
+    "Power",
     "Exit"
 ]
+
+poi_on = False
+speedometer_on = False
+map_on = False
+ticker_on = False
+street_names_on = False
+map_positions = ["Left Top", "Top Middle", "Right Top", "Right Middle", "Right Bottom", "Bottom Middle", "Left Bottom", "Left Middle"]
+map_position_index = 0
+power_on = False
+
+# Dials
+# 0: Breadcrumbs: press toggles on/off, turn sets minutes
+breadcrumbs_on = False
+breadcrumbs_minutes = 0
+
+# 1: Brightness: press toggles dark/light, turn sets brightness magnitude
+dark_mode = False
+brightness_level = 50  # 0-100
+
+# 2: Volume: press mute/unmute, turn sets volume percentage
+mute_on = False
+volume_level = 50  # 0-100
+
+# 3: Zoom: press toggles zoom on/off, turn in/out
+zoom_on = False
+zoom_level = 100  # 100 = normal, >100 zoom in, <100 zoom out
 
 global_key_images = [
     "image_1.png",

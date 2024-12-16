@@ -18,7 +18,7 @@ const PYTHON_UDP_PORT = 41235; // Port for receiving messages in Python
 // Event listener for receiving messages
 server.on('message', (msg, rinfo) => {
     try {
-        const decodedMessage = msgpack.decode(msg); // Decode the msgpack message
+        const decodedMessage = msgpack.decode(msg);
         console.log(`Received data from ${rinfo.address}:${rinfo.port}:`, decodedMessage);
 
         if (decodedMessage.type === "key_event") {
@@ -33,6 +33,9 @@ server.on('message', (msg, rinfo) => {
             console.log(
                 `Touchscreen Event: ${decodedMessage.event}, Label: ${decodedMessage.label}`
             );
+        } else if (decodedMessage.type === "label_update") {
+            // Handle label updates from Python
+            console.log(`Label Update for Layer: ${decodedMessage.layer}, Target: ${decodedMessage.target}, Index: ${decodedMessage.index}, Label: ${decodedMessage.label}, Image: ${decodedMessage.image}`);
         } else {
             console.error("Unknown event type:", decodedMessage.type);
         }
@@ -71,26 +74,76 @@ function sendToPython(data) {
 // Prompt the user for input
 function promptUser() {
     rl.question(
-        "Do you want to change a key or dial? (Enter 'button' or 'dial') ",
-        (type) => {
-            if (type === "key" || type === "dial") {
+        "Do you want to change a 'key', 'dial', or 'touchscreen'? ",
+        (target) => {
+            if (target === "key" || target === "dial" || target === "touchscreen") {
                 rl.question(
-                    `What number ${type} (0-${type === "key" ? 6 : 3})? `,
-                    (number) => {
-                        rl.question("What do you want to change it to? ", (newLabel) => {
-                            const data = {
-                                type: "update_label",
-                                target: type,
-                                index: parseInt(number),
-                                label: newLabel,
-                            };
-                            sendToPython(data); // Send update to Python
-                            promptUser(); // Restart prompt
-                        });
+                    "Which layer do you want to update? (1-3) ",
+                    (layerInput) => {
+                        const layer = parseInt(layerInput);
+                        if (![1,2,3].includes(layer)) {
+                            console.log("Invalid layer. Please enter 1, 2, or 3.");
+                            return promptUser();
+                        }
+
+                        // If target is touchscreen, index might not be relevant.
+                        // Assume index is needed for key/dial but not for touchscreen.
+                        if (target === "touchscreen") {
+                            // Touchscreen update might just have lines or other data
+                            // For simplicity, let's just update the 'lines' here.
+                            rl.question("Enter new lines (comma separated): ", (lineInput) => {
+                                const lines = lineInput.split(",").map(line => line.trim());
+                                const data = {
+                                    type: "update_label",
+                                    layer: layer,
+                                    target: target,
+                                    // Instead of index, we pass touchscreen_data:
+                                    touchscreen_data: { lines: lines }
+                                };
+                                sendToPython(data);
+                                promptUser();
+                            });
+                        } else {
+                            rl.question(
+                                `What ${target} index do you want to change? (key:0-7, dial:0-3) `,
+                                (number) => {
+                                    const index = parseInt(number);
+                                    // Validate index
+                                    if (target === "key" && (index < 0 || index > 7)) {
+                                        console.log("Invalid key index. Must be between 0 and 7.");
+                                        return promptUser();
+                                    }
+                                    if (target === "dial" && (index < 0 || index > 3)) {
+                                        console.log("Invalid dial index. Must be between 0 and 3.");
+                                        return promptUser();
+                                    }
+
+                                    rl.question("Enter the new label: ", (newLabel) => {
+                                        rl.question("Enter the new image filename (or leave blank for none): ", (newImage) => {
+                                            const data = {
+                                                type: "update_label",
+                                                layer: layer,
+                                                target: target,
+                                                index: index,
+                                                label: newLabel
+                                            };
+                                            
+                                            // Include image if provided
+                                            if (newImage.trim() !== "") {
+                                                data.image = newImage.trim();
+                                            }
+
+                                            sendToPython(data); 
+                                            promptUser();
+                                        });
+                                    });
+                                }
+                            );
+                        }
                     }
                 );
             } else {
-                console.log("Invalid input. Please enter 'key' or 'dial'.");
+                console.log("Invalid input. Please enter 'key', 'dial', or 'touchscreen'.");
                 promptUser(); // Restart prompt
             }
         }
