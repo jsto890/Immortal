@@ -87,17 +87,17 @@ const PRESET_MESSAGES = [
     {
         // Upload image for layer 1 key 7
         type: "update_image_link",
-        //image_url: ,
+        // image_url: ,
         filename: "power_on.png"
     },
     {
         // Upload image for layer 2 key 3
         type: "update_image_link",
-        //image_url: ,
+        // image_url: ,
         filename: "mode.png"
     },
     {
-        // Set key 7 in layer 1 to use power_on.png
+        // Set key 0 in layer 1 to use image_1.png
         type: "update_label",
         layer: 1,
         target: "key",
@@ -106,7 +106,6 @@ const PRESET_MESSAGES = [
         image: "image_1.png"
     },
     {
-        // Set key 7 in layer 1 to use power_on.png
         type: "update_label",
         layer: 1,
         target: "key",
@@ -115,7 +114,6 @@ const PRESET_MESSAGES = [
         image: "image_1.png"
     },
     {
-        // Set key 7 in layer 1 to use power_on.png
         type: "update_label",
         layer: 1,
         target: "key",
@@ -174,7 +172,7 @@ const PRESET_MESSAGES = [
         layer: 2,
         target: "key",
         index: 0,
-        label: "Breadcrumbs Off",
+        label: "Markers",
         image: "image_1.png"
     },
     {
@@ -183,7 +181,7 @@ const PRESET_MESSAGES = [
         layer: 2,
         target: "key",
         index: 1,
-        label: "Speedometer Off",
+        label: "Speed",
         image: "image_1.png"
     },
     {
@@ -192,7 +190,7 @@ const PRESET_MESSAGES = [
         layer: 2,
         target: "key",
         index: 2,
-        label: "POI Off",
+        label: "POI",
         image: "image_1.png"
     },
     {
@@ -201,7 +199,7 @@ const PRESET_MESSAGES = [
         layer: 2,
         target: "key",
         index: 4,
-        label: "Map Off",
+        label: "Map",
         image: "image_1.png"
     },
     {
@@ -210,7 +208,7 @@ const PRESET_MESSAGES = [
         layer: 2,
         target: "key",
         index: 5,
-        label: "Ticker Off",
+        label: "Ticker",
         image: "image_1.png"
     },
     {
@@ -219,7 +217,7 @@ const PRESET_MESSAGES = [
         layer: 2,
         target: "key",
         index: 6,
-        label: "Street Off",
+        label: "Street",
         image: "image_1.png"
     },
     {
@@ -358,7 +356,6 @@ const PRESET_MESSAGES = [
         }
     },
     {
-        // Example touchscreen lines in layer 2
         type: "update_label",
         layer: 3,
         target: "touchscreen",
