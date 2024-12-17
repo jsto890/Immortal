@@ -174,7 +174,7 @@ const PRESET_MESSAGES = [
         layer: 2,
         target: "key",
         index: 0,
-        label: "Breadcrumbs on/off",
+        label: "Breadcrumbs Off",
         image: "image_1.png"
     },
     {
@@ -183,7 +183,7 @@ const PRESET_MESSAGES = [
         layer: 2,
         target: "key",
         index: 1,
-        label: "Speedometer on/off",
+        label: "Speedometer Off",
         image: "image_1.png"
     },
     {
@@ -192,7 +192,7 @@ const PRESET_MESSAGES = [
         layer: 2,
         target: "key",
         index: 2,
-        label: "POI on/off",
+        label: "POI Off",
         image: "image_1.png"
     },
     {
@@ -201,7 +201,7 @@ const PRESET_MESSAGES = [
         layer: 2,
         target: "key",
         index: 4,
-        label: "Map on/off",
+        label: "Map Off",
         image: "image_1.png"
     },
     {
@@ -210,7 +210,7 @@ const PRESET_MESSAGES = [
         layer: 2,
         target: "key",
         index: 5,
-        label: "Ticker on/off",
+        label: "Ticker Off",
         image: "image_1.png"
     },
     {
@@ -219,7 +219,7 @@ const PRESET_MESSAGES = [
         layer: 2,
         target: "key",
         index: 6,
-        label: "Street on/off",
+        label: "Street Off",
         image: "image_1.png"
     },
     {
@@ -228,7 +228,7 @@ const PRESET_MESSAGES = [
         layer: 3,
         target: "key",
         index: 0,
-        label: "Breadcrumbs Replay",
+        label: "Marker Replay",
         image: "image_1.png"
     },
     {
@@ -282,7 +282,7 @@ const PRESET_MESSAGES = [
         layer: 2,
         target: "dial",
         index: 0,
-        label: "Breadcrumbs"
+        label: "Markers"
     },
     {
         // Example dial label in layer 2
@@ -298,7 +298,7 @@ const PRESET_MESSAGES = [
         layer: 2,
         target: "dial",
         index: 2,
-        label: "Speedometer"
+        label: "Speed"
     },
     {
         // Example dial label in layer 2
@@ -341,12 +341,20 @@ const PRESET_MESSAGES = [
         label: "Exit"
     },
     {
+        type: "update_label",
+        layer: 1,
+        target: "touchscreen",
+        touchscreen_data: {
+            lines: [" ", "Immortal Camera Systems"]
+        }
+    },
+    {
         // Example touchscreen lines in layer 2
         type: "update_label",
         layer: 2,
         target: "touchscreen",
         touchscreen_data: {
-            lines: ["Preset Ticker", "Layer 2 Screen"]
+            lines: ["Car Chase Preset", "Layer 2 Screen"]
         }
     },
     {
@@ -355,9 +363,10 @@ const PRESET_MESSAGES = [
         layer: 3,
         target: "touchscreen",
         touchscreen_data: {
-            lines: ["Preset Ticker", "Layer 3 Screen"]
+            lines: ["Car Chase Preset", "Layer 3 Screen"]
         }
     }
+
 ];
 
 async function applyPreset() {

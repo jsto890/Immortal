@@ -282,6 +282,34 @@ def key_change_callback(deck, key, state):
     global current_layer
     if state:
         print(f"Key {key} pressed at layer {current_layer}.")
+
+        label, img = get_key_image_and_label(current_layer, key)
+
+        # Default new_label to existing label so it's always defined
+        new_label = label
+
+        # If we're on layer 2, toggle label from "X On" to "X Off"
+        if current_layer == 2 and key not in [3, 7]:
+            if label.endswith("On"):
+                new_label = label[:-2] + "Off"
+            elif label.endswith("Off"):
+                new_label = label[:-3] + "On"
+            else:
+                new_label = label + " On"
+
+            keys_data[current_layer][key] = {"label": new_label, "image": img}
+            update_key_image(deck, key)
+
+        # Now new_label is always defined, we can safely reference it
+        send_event = {
+            "type": "key_event",
+            "event": "pressed",
+            "key": key,
+            "value": new_label
+        }
+        send_event_message("key_event", send_event)
+
+        # The rest of your layer-switch logic
         if current_layer == 1:
             if key == 7:
                 current_layer = 2
@@ -305,15 +333,6 @@ def key_change_callback(deck, key, state):
                 current_layer = 2
                 refresh_all_keys(deck)
                 update_touchscreen_image(deck)
-
-        label, _ = get_key_image_and_label(current_layer, key)
-        send_event = {
-            "type": "key_event",
-            "event": "pressed",
-            "key": key,
-            "value": label
-        }
-        send_event_message("key_event", send_event)
 
 def dial_change_callback(deck, dial, event, value):
     # Dials are general, updated via UDP. Just send events with layer info.
