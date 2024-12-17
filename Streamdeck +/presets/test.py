@@ -157,7 +157,7 @@ def create_touchscreen_image(deck, layer):
     # This is an example; adjust formatting as needed.
     # We'll just print dial labels in a row if present.
     dial_labels = [dial_data[layer].get(i, {}).get("label", "") for i in range(4)]
-    y_bottom = tscreen.height - 50  # move text ~50px above the bottom of the original image
+    y_bottom = tscreen.height - 200  # move text ~50px above the bottom of the original image
     x_coords = [120, 410, 750, 1060] # approximate positions for 4 dials
 
     for i, dlbl in enumerate(dial_labels):
@@ -172,7 +172,7 @@ def create_touchscreen_image(deck, layer):
             draw.text((x_pos, y_bottom), dlbl, font=font, fill="white")
 
     # Resize image to touchscreen dimensions if needed (assume 800x100)
-    image = tscreen.resize((800, 100), Image.LANCZOS)
+    image = tscreen.resize((800, 150), Image.LANCZOS)
     img_byte_arr = io.BytesIO()
     image.save(img_byte_arr, format='JPEG')
     native_image = img_byte_arr.getvalue()
