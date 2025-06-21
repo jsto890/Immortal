@@ -1,10 +1,10 @@
-# Lockit-HID
+# Immortal
 
 A comprehensive hardware interface development project consisting of three main components for professional audio/video production environments.
 
 ## Overview
 
-Lockit-HID is a collection of tools and applications designed for professional media production workflows, focusing on timecode synchronization, serial communication testing, and advanced Stream Deck integration.
+Immortal is a collection of tools and applications designed for professional media production workflows, focusing on timecode synchronization, serial communication testing, and advanced Stream Deck integration.
 
 ## Project Components
 
