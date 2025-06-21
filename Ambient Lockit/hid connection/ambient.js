@@ -7,14 +7,35 @@ const msgpack = require('msgpack-lite');
 // Set driver type to "libusb" for Linux
 HID.setDriverType("libusb");
 
-// Specify vendor and product IDs
-const targetVendorID = 0x10e6; // Lockit vendor ID
-const targetProductID = 0x108c; // Lockit product ID
+// Configuration - these can be overridden with environment variables
+// Example: UDP_IP=192.168.1.100 UDP_PORT=5000 node ambient.js
+const targetVendorID = parseInt(process.env.HID_VENDOR_ID || '0x10e6', 16); // Lockit vendor ID
+const targetProductID = parseInt(process.env.HID_PRODUCT_ID || '0x108c', 16); // Lockit product ID
+const serverAddress = process.env.UDP_IP || '127.0.0.1';
+const serverPort = parseInt(process.env.UDP_PORT || '41234');
+
+// Configuration note for users
+const CONFIG_NOTE = `
+IMPORTANT: This project was developed during a summer internship. 
+Some configurations, IP addresses, and device identifiers may be specific 
+to the development environment and should be adjusted for your use case.
+
+Current configuration:
+- HID Vendor ID: 0x${targetVendorID.toString(16).toUpperCase()}
+- HID Product ID: 0x${targetProductID.toString(16).toUpperCase()}
+- UDP Server: ${serverAddress}:${serverPort}
+
+To customize, set environment variables:
+- HID_VENDOR_ID=0x10e6
+- HID_PRODUCT_ID=0x108c
+- UDP_IP=192.168.1.100
+- UDP_PORT=5000
+`;
+
+console.log(CONFIG_NOTE);
 
 // UDP details
 const udpClient = dgram.createSocket('udp4');
-const serverPort = 41234;
-const serverAddress = '192.168.1.200';
 
 // Helper function to send timecode over UDP
 function sendTimecodeOverUDP(timecode) {

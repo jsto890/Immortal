@@ -3,13 +3,17 @@ import os
 import threading
 import socket
 import msgpack
+import sys
 from PIL import Image, ImageDraw, ImageFont
 from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
 from StreamDeck.Devices.StreamDeck import DialEventType, TouchscreenEventType
 
-UDP_IP = "192.168.1.200"
-UDP_PORT = 41234
+# Add parent directory to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from config import UDP_IP, UDP_PORT, RECEIVE_PORT, CONFIG_NOTE
+
+print(CONFIG_NOTE)
 
 # Folder containing image assets
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "Assets")
@@ -374,16 +378,11 @@ if __name__ == "__main__":
         deck.set_touchscreen_callback(touchscreen_event_callback)
         update_touchscreen_image(deck)
         
-        # Start UDP listener threads
-        udp_label_thread = threading.Thread(
-            target=udp_listener, args=(41235, lambda msg, addr: handle_label_update(msg, addr, deck)), daemon=True
+        # Start UDP listener thread
+        udp_thread = threading.Thread(
+            target=udp_listener, args=(RECEIVE_PORT, lambda msg, addr: handle_label_update(msg, addr, deck)), daemon=True
         )
-        udp_image_thread = threading.Thread(
-            target=udp_listener, args=(41236, lambda msg, addr: handle_image_data(msg, addr, deck)), daemon=True
-        )
- 
-        udp_label_thread.start()
-        udp_image_thread.start()
+        udp_thread.start()
 
         # Keep the script running
         print("Listening for events. Press Ctrl+C to exit.")

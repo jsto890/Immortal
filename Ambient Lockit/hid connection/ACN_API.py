@@ -22,6 +22,12 @@
 # When recieving the timecode, it seems like the values extracted are wrong or the conversion is wrong.
 
 import hid
+import sys
+import os
+
+# Add parent directory to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from config import HID_VENDOR_ID, HID_PRODUCT_ID, CONFIG_NOTE
 
 def send_recv(h, msg, tag):
     assert len(msg) <= 64
@@ -73,8 +79,9 @@ def parse_ltc_response(msg):
     return timecode
                 
 
-AMBIENT_USB_VENDOR = 0x10e6
-ACN_CL_USB_PRODUCT = 0x108c
+# Replace hardcoded device IDs with config values
+AMBIENT_USB_VENDOR = HID_VENDOR_ID
+ACN_CL_USB_PRODUCT = HID_PRODUCT_ID
 
 h = hid.device()
 h.open(AMBIENT_USB_VENDOR, ACN_CL_USB_PRODUCT)

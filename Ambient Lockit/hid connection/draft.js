@@ -1,11 +1,28 @@
 const HID = require('node-hid');
+const hid = require('hid');
 
 // Set driver type to "libusb" for Linux
 HID.setDriverType("libusb");
 
-// Specify vendor and product IDs
-const targetVendorID = 0x10e6; // Lockit vendor ID
-const targetProductID = 0x108c; // Lockit product ID
+// Configuration - these can be overridden with environment variables
+const targetVendorID = parseInt(process.env.HID_VENDOR_ID || '0x10e6', 16); // Lockit vendor ID
+const targetProductID = parseInt(process.env.HID_PRODUCT_ID || '0x108c', 16); // Lockit product ID
+
+// Configuration note for users
+const CONFIG_NOTE = `
+IMPORTANT: This project was developed during a summer internship. 
+Some configurations and device identifiers may be specific to the development environment.
+
+Current configuration:
+- HID Vendor ID: 0x${targetVendorID.toString(16).toUpperCase()}
+- HID Product ID: 0x${targetProductID.toString(16).toUpperCase()}
+
+To customize, set environment variables:
+- HID_VENDOR_ID=0x10e6
+- HID_PRODUCT_ID=0x108c
+`;
+
+console.log(CONFIG_NOTE);
 
 // Find the target device
 const devices = HID.devices().filter(device =>

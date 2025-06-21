@@ -14,6 +14,7 @@ The Ambient Lockit component provides comprehensive tools for interfacing with A
 - **ACN Protocol**: Art-Net Control Network support for lighting integration
 - **LTC Callback**: Linear Time Code callback functionality
 - **Device Management**: Automatic device detection and connection handling
+- **Configurable**: All device IDs and network settings can be customized
 
 ## Directory Structure
 
@@ -32,6 +33,29 @@ Ambient Lockit/
 └── test2.py                # Basic HID device testing
 ```
 
+## Configuration
+
+All device IDs and network settings are configurable through environment variables or the centralized `config.py` file.
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HID_VENDOR_ID` | `0x10E6` | HID device vendor ID |
+| `HID_PRODUCT_ID` | `0x108C` | HID device product ID |
+| `UDP_IP` | `127.0.0.1` | UDP server IP address |
+| `UDP_PORT` | `41234` | UDP server port |
+
+### Example Configuration
+
+```bash
+# Set environment variables for your specific devices
+export HID_VENDOR_ID="0x10E6"
+export HID_PRODUCT_ID="0x108C"
+export UDP_IP="192.168.1.100"
+export UDP_PORT="5000"
+```
+
 ## Usage
 
 ### Basic HID Testing
@@ -44,9 +68,10 @@ python test2.py
 ```
 
 This script will:
-- Attempt to connect to a Lockit device (VID: 0x10E6, PID: 0x108C)
+- Attempt to connect to a Lockit device using configurable VID/PID
 - Read data from the device
 - Display connection status and data
+- Show current configuration settings
 
 ### HID Connection Management
 
@@ -141,8 +166,8 @@ The system supports the following frame rates:
 
 The HID implementation communicates directly with Lockit devices via USB:
 
-- **Vendor ID**: 0x10E6
-- **Product ID**: 0x108C
+- **Vendor ID**: Configurable (default: 0x10E6)
+- **Product ID**: Configurable (default: 0x108C)
 - **Data Format**: 64-byte packets
 - **Communication**: Bidirectional read/write
 
@@ -162,6 +187,7 @@ The system includes comprehensive error handling:
 - Communication timeouts
 - Invalid frame rate settings
 - MIDI port conflicts
+- Configuration validation
 
 ## Troubleshooting
 
@@ -170,7 +196,8 @@ The system includes comprehensive error handling:
 1. **Device Not Found**
    - Ensure Lockit device is connected via USB
    - Check device drivers are installed
-   - Verify VID/PID match your device
+   - Verify VID/PID match your device in config
+   - Update environment variables if needed
 
 2. **Permission Errors**
    - Run with administrator privileges
@@ -182,9 +209,19 @@ The system includes comprehensive error handling:
    - Verify MIDI drivers are installed
    - Ensure correct port selection
 
+4. **Configuration Issues**
+   - Check environment variables are set correctly
+   - Verify config.py file is accessible
+   - Ensure device IDs match your hardware
+
 ### Debug Mode
 
-Enable debug output by modifying the relevant scripts to include verbose logging.
+Enable debug output by setting the DEBUG environment variable:
+
+```bash
+export DEBUG=true
+python test2.py
+```
 
 ## API Reference
 
@@ -208,3 +245,24 @@ Enable debug output by modifying the relevant scripts to include verbose logging
 - `stop_mtc()` - Stop MIDI timecode
 - `set_frame_rate(rate)` - Set frame rate
 - `get_current_timecode()` - Get current timecode
+
+## Contributing
+
+1. Test with your specific Lockit device model
+2. Verify frame rate compatibility
+3. Test MIDI integration with your setup
+4. Document any device-specific requirements
+5. Update configuration examples for new devices
+
+## License
+
+[Add your license information here]
+
+## Support
+
+For technical support:
+- Check device compatibility
+- Review error messages
+- Test with different frame rates
+- Verify USB/MIDI connections
+- Check configuration settings

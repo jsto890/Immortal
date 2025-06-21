@@ -2,10 +2,17 @@ import os
 import socket
 import msgpack
 import requests
+import sys
+
+# Add parent directory to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from config import RECEIVE_PORT, CONFIG_NOTE
+
+print(CONFIG_NOTE)
 
 # Configuration
 UDP_IP = "0.0.0.0"  # Listen on all interfaces
-UDP_PORT = 41235
+UDP_PORT = RECEIVE_PORT
 
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "Assets")
 if not os.path.exists(ASSETS_PATH):

@@ -16,6 +16,7 @@ Streamdeck + is a comprehensive Stream Deck integration solution that extends th
 - **Dial Integration**: Advanced dial control for parameter adjustment
 - **Preset Management**: Configurable presets for different workflows
 - **Cross-Platform**: Support for Windows, macOS, and Linux
+- **Configurable**: All network settings and device parameters can be customized
 
 ## Directory Structure
 
@@ -54,6 +55,36 @@ Streamdeck +/
 ├── initialisedetails.py    # Initialization details (Python)
 ├── draftlinux.py           # Linux draft implementation
 └── yep.py                  # Utility functions
+```
+
+## Configuration
+
+All network settings and device parameters are configurable through environment variables or the centralized `config.py` file.
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `UDP_IP` | `127.0.0.1` | Target IP address for UDP communication |
+| `UDP_PORT` | `41234` | UDP send port |
+| `RECEIVE_PORT` | `41235` | UDP receive port |
+| `ASSETS_PATH` | `Assets` | Path to Stream Deck assets |
+| `FONT_PATH` | `/usr/share/fonts/ttf/LiberationSans-Regular.ttf` | Font path |
+| `TOUCHSCREEN_WIDTH` | `800` | Touchscreen width |
+| `TOUCHSCREEN_HEIGHT` | `100` | Touchscreen height |
+| `DEBUG` | `False` | Enable debug mode |
+
+### Example Configuration
+
+```bash
+# Set environment variables for your network
+export UDP_IP="192.168.1.100"
+export UDP_PORT="5000"
+export RECEIVE_PORT="5001"
+export DEBUG="true"
+
+# Run applications
+python interactive.py
 ```
 
 ## Usage
@@ -141,42 +172,6 @@ Preset features:
 2. Set up dial mappings
 3. Configure touchscreen layout
 4. Add UDP communication
-
-## Configuration
-
-### Network Settings
-
-Default UDP configuration:
-
-```python
-UDP_IP = "192.168.1.200"
-UDP_PORT = 41234
-RECEIVE_PORT = 41235
-```
-
-### Device Settings
-
-```python
-# Stream Deck configuration
-ASSETS_PATH = "Assets"
-FONT_PATH = "/usr/share/fonts/ttf/LiberationSans-Regular.ttf"
-TOUCHSCREEN_WIDTH = 800
-TOUCHSCREEN_HEIGHT = 100
-```
-
-### Audio Control
-
-```python
-# Windows audio control (pycaw)
-from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
-from comtypes import CLSCTX_ALL, CoInitialize
-
-# Initialize audio control
-CoInitialize()
-devices = AudioUtilities.GetSpeakers()
-interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-volume = interface.QueryInterface(IAudioEndpointVolume)
-```
 
 ## API Reference
 
@@ -314,12 +309,25 @@ data = msgpack.unpackb(encoded_data, raw=False)
    - Check network connectivity
    - Verify IP address and port settings
    - Check firewall settings
+   - Ensure environment variables are set correctly
 
 4. **Audio Control Problems**
    - Verify pycaw installation
    - Check Windows audio settings
    - Ensure audio device is available
 
+5. **Configuration Issues**
+   - Check environment variables are set correctly
+   - Verify config.py file is accessible
+   - Ensure network settings match your environment
+
+### Debug Mode
+
+Enable debug output by setting the DEBUG environment variable:
+
+```bash
+export DEBUG=true
+python interactive.py
 ```
 
 ## Use Cases
@@ -344,3 +352,24 @@ data = msgpack.unpackb(encoded_data, raw=False)
 - Graphics management
 - Audio routing
 - Transmission control
+
+## Contributing
+
+1. Test with different Stream Deck models
+2. Add support for additional protocols
+3. Improve error handling
+4. Add new preset configurations
+5. Update configuration examples for new environments
+
+## License
+
+[Add your license information here]
+
+## Support
+
+For technical support:
+- Check device compatibility
+- Verify network settings
+- Test UDP communication
+- Review error messages
+- Check configuration settings

@@ -4,13 +4,17 @@ import threading
 import socket
 import msgpack
 import requests
+import sys
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
 from StreamDeck.Devices.StreamDeck import DialEventType, TouchscreenEventType
 
-UDP_IP = "192.168.1.200"
-UDP_PORT = 41234
+# Add parent directory to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from config import UDP_IP, UDP_PORT, RECEIVE_PORT, CONFIG_NOTE
+
+print(CONFIG_NOTE)
 
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "Assets")
 FONT_PATH = "/usr/share/fonts/ttf/LiberationSans-Bold.ttf"
@@ -57,7 +61,7 @@ def download_image(image_url, filename):
 def udp_listener():
     """Listen for incoming messages to update keys, dials, touchscreen from another code."""
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udp_socket.bind(("0.0.0.0", 41235))
+    udp_socket.bind(("0.0.0.0", RECEIVE_PORT))
     while True:
         msg, addr = udp_socket.recvfrom(4096)
         try:

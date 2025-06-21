@@ -1,6 +1,23 @@
 const dgram = require('dgram');
 const msgpack = require('msgpack-lite');
 
+// Configuration - these can be overridden with environment variables
+const PORT = parseInt(process.env.UDP_PORT || '41234'); // This must match the client port
+
+// Configuration note for users
+const CONFIG_NOTE = `
+IMPORTANT: This project was developed during a summer internship. 
+Some configurations may be specific to the development environment.
+
+Current configuration:
+- UDP Port: ${PORT}
+
+To customize, set environment variables:
+- UDP_PORT=41234
+`;
+
+console.log(CONFIG_NOTE);
+
 // Create a UDP socket (server)
 const server = dgram.createSocket('udp4');
 
@@ -131,5 +148,4 @@ server.on('error', (err) => {
 });
 
 // Bind the server to a specific port
-const PORT = 41234; // This must match the client port
 server.bind(PORT, '0.0.0.0');

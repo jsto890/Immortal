@@ -2,9 +2,18 @@
 # Trying to connect laptop to ACN Lockit using USB HID connector
 
 import hid
+import sys
+import os
 
-VID = 0x10E6
-PID = 0x108C
+# Add parent directory to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from config import HID_VENDOR_ID, HID_PRODUCT_ID, CONFIG_NOTE
+
+print(CONFIG_NOTE)
+
+# Use config values instead of hardcoded IDs
+VID = HID_VENDOR_ID
+PID = HID_PRODUCT_ID
 
 try :
     device = hid.device(vid = VID, pid = PID)

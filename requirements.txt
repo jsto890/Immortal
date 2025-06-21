@@ -1,0 +1,25 @@
+# Python dependencies for Immortal project
+# This project was developed during a summer internship
+
+# Core dependencies
+hidapi>=1.0.4              # HID device communication
+pyserial>=3.5              # Serial port communication
+Pillow>=8.0.0              # Image processing (PIL)
+streamdeck>=0.9.0          # Stream Deck SDK
+
+# Windows-specific dependencies
+pycaw>=20210701            # Windows audio control
+comtypes>=1.1.7            # COM interface support
+
+# Network and data handling
+msgpack>=1.0.0             # Message serialization
+requests>=2.25.0           # HTTP requests
+
+# Development and testing
+pytest>=6.0.0              # Testing framework
+black>=21.0.0              # Code formatting
+flake8>=3.8.0              # Code linting
+
+# Optional dependencies
+# numpy>=1.19.0            # Numerical computing (if needed)
+# opencv-python>=4.5.0     # Computer vision (if needed) 

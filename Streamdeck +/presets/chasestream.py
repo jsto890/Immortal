@@ -3,13 +3,17 @@ import os
 import threading
 import socket
 import msgpack
+import sys
 from PIL import Image, ImageDraw, ImageFont
 from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
 from StreamDeck.Devices.StreamDeck import DialEventType, TouchscreenEventType
 
-UDP_IP = "192.168.1.200"
-UDP_PORT = 41234
+# Add parent directory to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from config import UDP_IP, UDP_PORT, RECEIVE_PORT, CONFIG_NOTE
+
+print(CONFIG_NOTE)
 
 # Folder containing image assets
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "Assets")
@@ -81,13 +85,13 @@ global_key_images = [
 global_dial_labels = ["Volume", "Zoom", "Brightness", "Not Set"]
 
 def udp_listener():
-    """Listen for incoming messages from the JavaScript server."""
+    """Listen for incoming messages to update keys, dials, touchscreen from another code."""
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udp_socket.bind(("0.0.0.0", 41235))  # Python listens on this port
+    udp_socket.bind(("0.0.0.0", RECEIVE_PORT))  # Python listens on this port
     while True:
-        msg, addr = udp_socket.recvfrom(1024)
+        msg, addr = udp_socket.recvfrom(4096)
         try:
-            data = msgpack.unpackb(msg)
+            data = msgpack.unpackb(msg, raw=False)
             process_udp_message(data)
         except Exception as e:
             print(f"Error processing message: {e}")

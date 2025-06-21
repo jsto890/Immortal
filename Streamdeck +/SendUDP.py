@@ -9,8 +9,11 @@ from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
 from StreamDeck.Devices.StreamDeck import DialEventType, TouchscreenEventType
 
-UDP_IP = "192.168.1.200"
-UDP_PORT = 41234
+# Add parent directory to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import UDP_IP, UDP_PORT, CONFIG_NOTE
+
+print(CONFIG_NOTE)
 
 # Folder containing image assets
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "Assets")

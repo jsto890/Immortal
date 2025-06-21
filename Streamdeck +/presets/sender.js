@@ -2,8 +2,25 @@ const dgram = require('dgram');
 const readline = require('readline');
 const msgpack = require('msgpack-lite');
 
-const PYTHON_UDP_IP = "192.168.1.200"; // Replace with Python script's IP
-const PYTHON_UDP_PORT = 41235; // Port for receiving messages in Python
+// Configuration - these can be overridden with environment variables
+const PYTHON_UDP_IP = process.env.UDP_IP || "127.0.0.1"; // Replace with Python script's IP
+const PYTHON_UDP_PORT = parseInt(process.env.RECEIVE_PORT || "41235"); // Port for receiving messages in Python
+
+// Configuration note for users
+const CONFIG_NOTE = `
+IMPORTANT: This project was developed during a summer internship. 
+Some configurations may be specific to the development environment.
+
+Current configuration:
+- Python UDP IP: ${PYTHON_UDP_IP}
+- Python UDP Port: ${PYTHON_UDP_PORT}
+
+To customize, set environment variables:
+- UDP_IP=192.168.1.100
+- RECEIVE_PORT=41235
+`;
+
+console.log(CONFIG_NOTE);
 
 // Create a UDP socket (server)
 const server = dgram.createSocket('udp4');
@@ -205,5 +222,5 @@ async function promptUser() {
 
 promptUser(); // Start the loop
 
-const PORT = 41234; // Must match Python's UDP_PORT
+const PORT = parseInt(process.env.UDP_PORT || "41234"); // Must match Python's UDP_PORT
 server.bind(PORT, '0.0.0.0'); 
